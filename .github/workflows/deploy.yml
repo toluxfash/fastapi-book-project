@@ -1,0 +1,34 @@
+name: Deployment Pipeline
+
+# Trigger the workflow on pushes to the main branch (e.g., after a PR merge)
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the latest code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Deploy to the AWS EC2 Ubuntu instance via SSH
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}       # Your EC2 public IP or hostname
+          username: ${{ secrets.EC2_USER }}     # EC2 username (often "ubuntu")
+          key: ${{ secrets.EC2_SSH_KEY }}       # Your private SSH key (stored as a secret)
+          port: 22
+          script: |
+            cd /home/ubuntu/fastapi-app
+            git pull                            # Pull the latest code from GitHub
+            docker build -t fastapi-app .       # Build the Docker image
+            # Stop and remove the current container if it exists (ignore errors if not running)
+            docker stop fastapi-container || true
+            docker rm fastapi-container || true
+            # Run the new container in detached mode and map port 8000
+            docker run -d --name fastapi-container -p 8000:8000 fastapi-app
