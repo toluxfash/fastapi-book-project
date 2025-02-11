@@ -11,7 +11,7 @@ db = InMemoryDB()
 db.books = {
     1: Book(
         id=1,
-        title="The Hobbi",
+        title="The Hobbit",
         author="J.R.R. Tolkien",
         publication_year=1937,
         genre=Genre.SCI_FI,
