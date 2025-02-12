@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the latest code from the repository (for reference, not used on EC2)
+      # Step 1: Check out the latest code from the repository (for reference; not used on EC2)
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -51,13 +51,13 @@ jobs:
 
             # Build the Docker image
             echo "Building the Docker image..."
-            docker build -t fastapi-app .
+            sudo docker build -t fastapi-app .
 
             # Stop and remove the existing container if it exists
             echo "Stopping and removing any existing container..."
-            docker stop fastapi-container || true
-            docker rm fastapi-container || true
+            sudo docker stop fastapi-container || true
+            sudo docker rm fastapi-container || true
 
             # Run the new container in detached mode, mapping port 8000
             echo "Starting the new Docker container..."
-            docker run -d --name fastapi-container -p 8000:8000 fastapi-app
+            sudo docker run -d --name fastapi-container -p 8000:8000 fastapi-app
