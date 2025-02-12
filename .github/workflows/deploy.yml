@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the latest code from the repository
+      # Step 1: Check out the latest code from the repository (for reference, not used on EC2)
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -20,15 +20,44 @@ jobs:
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}       # Your EC2 public IP or hostname
-          username: ${{ secrets.EC2_USER }}     # EC2 username (often "ubuntu")
+          username: ${{ secrets.EC2_USER }}     # EC2 username (commonly "ubuntu")
           key: ${{ secrets.EC2_SSH_KEY }}       # Your private SSH key (stored as a secret)
           port: 22
           script: |
-            cd /home/ubuntu/fastapi-app
-            git pull                            # Pull the latest code from GitHub
-            docker build -t fastapi-app .       # Build the Docker image
-            # Stop and remove the current container if it exists (ignore errors if not running)
+            # Update package lists and install Docker and Git
+            echo "Updating packages..."
+            sudo apt update -y
+            echo "Installing Docker and Git..."
+            sudo apt install -y docker.io git
+
+            # Create the application directory if it does not exist
+            if [ ! -d "/home/ubuntu/fastapi-app" ]; then
+              echo "Creating directory /home/ubuntu/fastapi-app..."
+              mkdir -p /home/ubuntu/fastapi-app
+            fi
+
+            # Change to the application directory
+            cd /home/ubuntu/fastapi-app || { echo "Directory /home/ubuntu/fastapi-app not found"; exit 1; }
+
+            # If the directory is not a Git repository, clone it; otherwise, pull the latest changes
+            if [ ! -d ".git" ]; then
+              echo "Directory is not a Git repository. Cloning repository..."
+              # Replace the URL below with your repository URL
+              git clone https://github.com/toluxfash/fastapi-book-project.git .
+            else
+              echo "Git repository found. Pulling latest changes..."
+              git pull
+            fi
+
+            # Build the Docker image
+            echo "Building the Docker image..."
+            docker build -t fastapi-app .
+
+            # Stop and remove the existing container if it exists
+            echo "Stopping and removing any existing container..."
             docker stop fastapi-container || true
             docker rm fastapi-container || true
-            # Run the new container in detached mode and map port 8000
+
+            # Run the new container in detached mode, mapping port 8000
+            echo "Starting the new Docker container..."
             docker run -d --name fastapi-container -p 8000:8000 fastapi-app
