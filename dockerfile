@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose the port that FastAPI will run on (this is for uvicorn)
-EXPOSE 8000
+EXPOSE 80
 
 # Copy the entrypoint script into the container
 COPY entrypoint.sh /app/entrypoint.sh
