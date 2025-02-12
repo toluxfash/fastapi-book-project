@@ -60,4 +60,4 @@ jobs:
 
             # Run the new container in detached mode, mapping port 8000
             echo "Starting the new Docker container..."
-            sudo docker run -d --name fastapi-container -p 8000:8000 fastapi-app
+            sudo docker run -d --name fastapi-container -p 80:80 fastapi-app
