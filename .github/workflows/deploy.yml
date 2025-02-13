@@ -78,6 +78,20 @@ jobs:
             docker images --filter "reference=*fastapi*" --format "{{.ID}}" | xargs -r docker rmi -f || true
             docker images --filter "reference=*nginx*" --format "{{.ID}}" | xargs -r docker rmi -f || true
 
+      - name: Ensure Docker Compose is Installed
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Docker Compose not found. Installing..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+            docker-compose --version
+
       - name: Run docker-compose Down
         uses: appleboy/ssh-action@master
         with:
